@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 
 	// Uncomment this block to pass the first stage
@@ -25,5 +26,13 @@ func main() {
 		fmt.Println("Error accepting connection: ", err.Error())
 		os.Exit(1)
 	}
-	fmt.Fprint(conn, "HTTP/1.1 200 OK\r\n\r\n")
+	scanner := bufio.NewScanner(conn)
+	for {
+		var request string
+		if ok := scanner.Scan(); ok {
+			fmt.Fprint(conn, "HTTP/1.1 200 OK\r\n\r\n")
+			request += scanner.Text()
+			break
+		}
+	}
 }
