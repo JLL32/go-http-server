@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"strings"
 
 	// Uncomment this block to pass the first stage
 	"net"
@@ -28,10 +29,13 @@ func main() {
 	}
 	scanner := bufio.NewScanner(conn)
 	for {
-		var request string
 		if ok := scanner.Scan(); ok {
+			head := strings.Split(scanner.Text(), " ")
+			if head[1] != "\\" {
+				fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
+				break
+			}
 			fmt.Fprint(conn, "HTTP/1.1 200 OK\r\n\r\n")
-			request += scanner.Text()
 			break
 		}
 	}
