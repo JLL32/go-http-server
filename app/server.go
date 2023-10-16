@@ -31,7 +31,7 @@ func main() {
 	for {
 		if ok := scanner.Scan(); ok {
 			head := strings.Split(scanner.Text(), " ")
-			if head[1] != "\\" {
+			if head[1] != "/" {
 				fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
 				break
 			}
