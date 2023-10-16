@@ -37,7 +37,7 @@ func main() {
 			// 	break
 			// }
 			if len(path) == 2 {
-				fmt.Fprint(conn, contentResponse(path[2]))
+				fmt.Fprint(conn, contentResponse(path[1]))
 			} else {
 				fmt.Fprint(conn, contentResponse(""))
 			}
