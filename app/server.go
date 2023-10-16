@@ -32,10 +32,10 @@ func main() {
 		if ok := scanner.Scan(); ok {
 			head := strings.Split(scanner.Text(), " ")
 			path := strings.Split(head[1], "/")
-			if len(path) != 1 || path[0] != "echo" {
-				fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
-				break
-			}
+			// if len(path) != 1 || path[0] != "echo" {
+			// 	fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
+			// 	break
+			// }
 			if len(path) == 2 {
 				fmt.Fprint(conn, contentResponse(path[2]))
 			} else {
