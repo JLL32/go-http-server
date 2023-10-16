@@ -31,12 +31,27 @@ func main() {
 	for {
 		if ok := scanner.Scan(); ok {
 			head := strings.Split(scanner.Text(), " ")
-			if head[1] != "/" {
+			path := strings.Split(head[1], "/")
+			if len(path) != 1 || path[0] != "echo" {
 				fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
 				break
 			}
-			fmt.Fprint(conn, "HTTP/1.1 200 OK\r\n\r\n")
+			if len(path) == 2 {
+				fmt.Fprint(conn, contentResponse(path[2]))
+			} else {
+				fmt.Fprint(conn, contentResponse(""))
+			}
 			break
 		}
 	}
+}
+
+func contentResponse(content string) string {
+	res := "HTTP/1.1 200 OK\r\n" +
+		"Content-Type: text/plain\r\n" +
+		fmt.Sprintf("Content-Length: %v\r\n", len(content)) +
+		"\r\n" +
+		content
+
+	return res
 }
