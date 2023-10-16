@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"regexp"
 	"strings"
 
 	// Uncomment this block to pass the first stage
@@ -27,21 +28,23 @@ func main() {
 		fmt.Println("Error accepting connection: ", err.Error())
 		os.Exit(1)
 	}
+
 	scanner := bufio.NewScanner(conn)
-	for {
-		if ok := scanner.Scan(); ok {
-			head := strings.Split(scanner.Text(), " ")
+	if ok := scanner.Scan(); ok {
+		head := strings.Split(scanner.Text(), " ")
+
+		if head[1] == "/" {
+			fmt.Fprint(conn, "HTTP/1.1 200 Ok\r\n\r\n")
+		} else if ok, _ := regexp.Match("/echo*", []byte(head[1])); ok {
 			path := strings.Split(head[1], "/")
-			// if len(path) != 1 || path[0] != "echo" {
-			// 	fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
-			// 	break
-			// }
+
 			if len(path) == 2 {
 				fmt.Fprint(conn, contentResponse(path[1]))
 			} else {
 				fmt.Fprint(conn, contentResponse(""))
 			}
-			break
+		} else {
+			fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
 		}
 	}
 }
