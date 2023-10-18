@@ -39,7 +39,7 @@ func main() {
 			path := strings.Split(head[1][1:], "/")
 
 			if len(path) >= 2 {
-				fmt.Fprint(conn, contentResponse(strings.Join(path[1:], " ")))
+				fmt.Fprint(conn, contentResponse(strings.Join(path[1:], "/")))
 			} else {
 				fmt.Fprint(conn, contentResponse(""))
 			}
