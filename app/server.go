@@ -37,7 +37,6 @@ func main() {
 			fmt.Fprint(conn, "HTTP/1.1 200 Ok\r\n\r\n")
 		} else if ok, _ := regexp.Match("/echo/*", []byte(head[1])); ok {
 			path := strings.Split(head[1][1:], "/")
-
 			if len(path) >= 2 {
 				fmt.Fprint(conn, contentResponse(strings.Join(path[1:], "/")))
 			} else {
