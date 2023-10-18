@@ -53,8 +53,7 @@ func contentResponse(content string) string {
 		"Content-Type: text/plain\r\n" +
 		fmt.Sprintf("Content-Length: %v\r\n", len(content)) +
 		"\r\n" +
-		content +
-		"\r\n"
+		content
 
 	return res
 }
