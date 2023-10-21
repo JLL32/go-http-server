@@ -46,17 +46,26 @@ func main() {
 
 		req := parseRequest(buff)
 
-		if len(req.path) == 1 {
+		if len(req.path) == 0 {
 			fmt.Fprint(conn, "HTTP/1.1 200 Ok\r\n\r\n")
-		} else if req.path[1] == "echo" {
-			if len(req.path) >= 3 {
-				fmt.Fprint(conn, contentResponse(strings.Join(req.path[2:], "/")))
+			conn.Close()
+			continue
+		}
+
+		switch req.path[0] {
+		case "echo":
+			var content string
+			if len(req.path) >= 2 {
+				content = strings.Join(req.path[1:], "/")
 			} else {
-				fmt.Fprint(conn, contentResponse(""))
+				content = ""
 			}
-		} else if req.path[1] == "user-agent" {
+			fmt.Fprint(conn, contentResponse(content))
+
+		case "user-agent":
 			fmt.Fprint(conn, contentResponse(req.headers["User-Agent"]))
-		} else {
+
+		default:
 			fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
 		}
 
@@ -82,7 +91,12 @@ func parseRequest(req []string) request {
 	head := strings.Split(req[0], " ")
 
 	parsedRequest.verb = head[0]
-	parsedRequest.path = strings.Split(head[1], "/")
+	tokens := strings.Split(head[1], "/")
+	for _, v := range tokens {
+		if v != "" {
+			parsedRequest.path = append(parsedRequest.path, v)
+		}
+	}
 	parsedRequest.version = head[2]
 	if len(req) == 1 || len(req) == 2 {
 		return parsedRequest
