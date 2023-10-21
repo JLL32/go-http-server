@@ -58,6 +58,8 @@ func main() {
 			} else {
 				fmt.Fprint(conn, contentResponse(""))
 			}
+		} else if req.path[1] == "user-agent" {
+			fmt.Fprint(conn, contentResponse(req.headers["User-Agent"]))
 		} else {
 			fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
 		}
