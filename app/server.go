@@ -38,17 +38,13 @@ func main() {
 		sc := bufio.NewScanner(conn)
 		for sc.Scan() {
 			line := sc.Text()
-			// length := len(line)
 			if line == "" {
 				break
 			}
 			buff = append(buff, line)
 		}
 
-		// req := parseRequest(strings.Split(string(buff), "\r\n"))
 		req := parseRequest(buff)
-
-		// log.Println("hello")
 
 		if len(req.path) == 1 {
 			fmt.Fprint(conn, "HTTP/1.1 200 Ok\r\n\r\n")
@@ -63,8 +59,6 @@ func main() {
 		} else {
 			fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
 		}
-
-		// log.Println("hello")
 
 		conn.Close()
 	}
@@ -94,7 +88,6 @@ func parseRequest(req []string) request {
 		return parsedRequest
 	}
 
-	// log.Println("hello")
 	i := 2
 	parsedRequest.headers = make(map[string]string)
 	for ; i < len(req) && req[i] != ""; i++ {
