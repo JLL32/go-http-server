@@ -67,8 +67,22 @@ func main() {
 			case "user-agent":
 				fmt.Fprint(conn, contentResponse(req.headers["User-Agent"]))
 
+			case "files":
+				if len(req.path) < 2 {
+					notFound(conn)
+					return
+				}
+
+				name := strings.Join(req.path[1:], "/")
+				buff, err := os.ReadFile(name)
+				if err != nil {
+					notFound(conn)
+					return
+				}
+				fmt.Fprint(conn, fileResponse(string(buff)))
+
 			default:
-				fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
+				notFound(conn)
 			}
 		}()
 	}
@@ -130,4 +144,18 @@ func contentResponse(content string) string {
 		content
 
 	return res
+}
+
+func fileResponse(fileContent string) string {
+	res := "HTTP/1.1 200 OK\r\n" +
+		"Content-Type: application/octet-stream\r\n" +
+		fmt.Sprintf("Content-Length: %v\r\n", len(fileContent)) +
+		"\r\n" +
+		fileContent
+
+	return res
+}
+
+func notFound(w io.Writer) {
+	fmt.Fprint(w, "HTTP/1.1 404 Not Found\r\n\r\n")
 }
