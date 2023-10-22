@@ -31,45 +31,46 @@ func main() {
 		conn, err := l.Accept()
 		if err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
-			os.Exit(1)
-		}
-
-		var buff []string
-		sc := bufio.NewScanner(conn)
-		for sc.Scan() {
-			line := sc.Text()
-			if line == "" {
-				break
-			}
-			buff = append(buff, line)
-		}
-
-		req := parseRequest(buff)
-
-		if len(req.path) == 0 {
-			fmt.Fprint(conn, "HTTP/1.1 200 Ok\r\n\r\n")
-			conn.Close()
 			continue
 		}
 
-		switch req.path[0] {
-		case "echo":
-			var content string
-			if len(req.path) >= 2 {
-				content = strings.Join(req.path[1:], "/")
-			} else {
-				content = ""
+		go func() {
+			defer conn.Close()
+
+			var buff []string
+			sc := bufio.NewScanner(conn)
+			for sc.Scan() {
+				line := sc.Text()
+				if line == "" {
+					break
+				}
+				buff = append(buff, line)
 			}
-			fmt.Fprint(conn, contentResponse(content))
 
-		case "user-agent":
-			fmt.Fprint(conn, contentResponse(req.headers["User-Agent"]))
+			req := parseRequest(buff)
 
-		default:
-			fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
-		}
+			if len(req.path) == 0 {
+				fmt.Fprint(conn, "HTTP/1.1 200 Ok\r\n\r\n")
+				return
+			}
 
-		conn.Close()
+			switch req.path[0] {
+			case "echo":
+				var content string
+				if len(req.path) >= 2 {
+					content = strings.Join(req.path[1:], "/")
+				} else {
+					content = ""
+				}
+				fmt.Fprint(conn, contentResponse(content))
+
+			case "user-agent":
+				fmt.Fprint(conn, contentResponse(req.headers["User-Agent"]))
+
+			default:
+				fmt.Fprint(conn, "HTTP/1.1 404 Not Found\r\n\r\n")
+			}
+		}()
 	}
 
 }
