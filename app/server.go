@@ -73,7 +73,7 @@ func main() {
 					return
 				}
 
-				name := "/" + strings.Join(req.path[1:], "/")
+				name := strings.Join(req.path[1:], "/")
 				buff, err := os.ReadFile(name)
 				if err != nil {
 					notFound(conn)
