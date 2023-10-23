@@ -15,6 +15,11 @@ import (
 )
 
 func main() {
+	var filesDir string
+	if len(os.Args) == 3 && os.Args[1] == "--directory" {
+		filesDir = os.Args[2]
+	}
+
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
 
@@ -75,9 +80,8 @@ func main() {
 				}
 
 				// name := strings.Join(req.path[1:], "/")
-				cwd, _ := os.Getwd()
 				name := path.Join(req.path[1:]...)
-				path := path.Join(cwd, name)
+				path := path.Join(filesDir, name)
 				buff, err := os.ReadFile(path)
 				if err != nil {
 					notFound(conn)
