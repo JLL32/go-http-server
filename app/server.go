@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"path"
 	"strings"
 
 	// Uncomment this block to pass the first stage
@@ -73,8 +74,11 @@ func main() {
 					return
 				}
 
-				name := strings.Join(req.path[1:], "/")
-				buff, err := os.ReadFile(name)
+				// name := strings.Join(req.path[1:], "/")
+				cwd, _ := os.Getwd()
+				name := path.Join(req.path[1:]...)
+				path := path.Join(cwd, name)
+				buff, err := os.ReadFile(path)
 				if err != nil {
 					notFound(conn)
 					return
