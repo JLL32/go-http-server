@@ -47,14 +47,19 @@ func serve(conn net.Conn, dir string) {
 	respHeaders := make(map[string]string)
 
 	if v, ok := req.headers["Accept-Encoding"]; ok {
-		if v == "gzip" {
-			respHeaders["Content-Encoding"] = "gzip"
+		encodings := strings.Split(v, ",")
+		for _, enco := range encodings {
+			if strings.TrimSpace(enco) == "gzip" {
+				respHeaders["Content-Encoding"] = "gzip"
+				break
+			}
 		}
 	}
 
 	switch req.path[0] {
 	case "":
-		fmt.Fprint(conn, "HTTP/1.1 200 OK\r\n\r\n")
+		resp := NewResponse(200)
+		fmt.Fprintf(conn, resp.String())
 
 	case "echo":
 		var content string
@@ -89,7 +94,8 @@ func serve(conn net.Conn, dir string) {
 				return
 			}
 
-			fmt.Fprint(conn, "HTTP/1.1 201 Created\r\n\r\n")
+			resp := NewResponse(201)
+			fmt.Fprintf(conn, resp.String())
 		} else {
 			name := path.Join(req.path[1:]...)
 			path := path.Join(dir, name)
@@ -225,6 +231,8 @@ func statusText(status int) string {
 	switch status {
 	case 200:
 		return "OK"
+	case 201:
+		return "Created"
 	case 404:
 		return "Not Found"
 	}
