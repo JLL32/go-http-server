@@ -238,7 +238,7 @@ func textResponse(defaultHeaders map[string]string, content string) string {
 		resp.Headers[k] = v
 	}
 	resp.Headers["Content-Type"] = "text/plain"
-	resp.Headers["Content-Length"] = string(len(content))
+	resp.Headers["Content-Length"] = strconv.Itoa(len(content))
 
 	resp.Body = content
 
