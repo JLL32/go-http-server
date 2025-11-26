@@ -54,7 +54,7 @@ func serve(conn net.Conn, dir string) {
 
 	switch req.path[0] {
 	case "":
-		fmt.Fprint(conn, "HTTP/1.1 200 Ok\r\n\r\n")
+		fmt.Fprint(conn, "HTTP/1.1 200 OK\r\n\r\n")
 
 	case "echo":
 		var content string
