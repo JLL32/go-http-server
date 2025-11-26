@@ -252,7 +252,7 @@ func fileResponse(defaultHeaders map[string]string, fileContent string) string {
 		resp.Headers[k] = v
 	}
 	resp.Headers["Content-Type"] = "application/octet-stream"
-	resp.Headers["Content-Length"] = string(len(fileContent))
+	resp.Headers["Content-Length"] = strconv.Itoa(len(fileContent))
 
 	resp.Body = fileContent
 
@@ -265,4 +265,6 @@ func notFound(defaultHeaders map[string]string, w io.Writer) {
 	for k, v := range defaultHeaders {
 		resp.Headers[k] = v
 	}
+
+	w.Write([]byte(resp.String()))
 }
