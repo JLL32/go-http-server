@@ -40,9 +40,17 @@ func main() {
 }
 
 func serve(conn net.Conn, dir string) {
-	defer conn.Close()
+	// defer conn.Close()
 
 	req := readRequest(conn)
+
+	respHeaders := make(map[string]string)
+
+	if v, ok := req.headers["Accept-Encoding"]; ok {
+		if v == "gzip" {
+			respHeaders["Content-Encoding"] = "gzip"
+		}
+	}
 
 	switch req.path[0] {
 	case "":
@@ -55,14 +63,14 @@ func serve(conn net.Conn, dir string) {
 		} else {
 			content = ""
 		}
-		fmt.Fprint(conn, textResponse(content))
+		fmt.Fprint(conn, textResponse(respHeaders, content))
 
 	case "user-agent":
-		fmt.Fprint(conn, textResponse(req.headers["User-Agent"]))
+		fmt.Fprint(conn, textResponse(respHeaders, req.headers["User-Agent"]))
 
 	case "files":
 		if len(req.path) < 2 {
-			notFound(conn)
+			notFound(respHeaders, conn)
 			return
 		}
 
@@ -71,13 +79,13 @@ func serve(conn net.Conn, dir string) {
 			path := path.Join(dir, name)
 			f, err := os.Create(path)
 			if err != nil {
-				notFound(conn)
+				notFound(respHeaders, conn)
 				return
 			}
 
 			_, err = f.Write(req.body)
 			if err != nil {
-				notFound(conn)
+				notFound(respHeaders, conn)
 				return
 			}
 
@@ -87,15 +95,15 @@ func serve(conn net.Conn, dir string) {
 			path := path.Join(dir, name)
 			buff, err := os.ReadFile(path)
 			if err != nil {
-				notFound(conn)
+				notFound(respHeaders, conn)
 				return
 			}
 
-			fmt.Fprint(conn, fileResponse(string(buff)))
+			fmt.Fprint(conn, fileResponse(respHeaders, string(buff)))
 		}
 
 	default:
-		notFound(conn)
+		notFound(respHeaders, conn)
 	}
 }
 
@@ -177,26 +185,84 @@ func readRequest(r io.Reader) request {
 	return req
 }
 
-func textResponse(content string) string {
-	res := "HTTP/1.1 200 OK\r\n" +
-		"Content-Type: text/plain\r\n" +
-		fmt.Sprintf("Content-Length: %v\r\n", len(content)) +
-		"\r\n" +
-		content
-
-	return res
+type Response struct {
+	Status  int
+	Headers map[string]string
+	Body    string
 }
 
-func fileResponse(fileContent string) string {
-	res := "HTTP/1.1 200 OK\r\n" +
-		"Content-Type: application/octet-stream\r\n" +
-		fmt.Sprintf("Content-Length: %v\r\n", len(fileContent)) +
-		"\r\n" +
-		fileContent
-
-	return res
+func NewResponse(status int) Response {
+	return Response{
+		Status:  status,
+		Headers: make(map[string]string),
+	}
 }
 
-func notFound(w io.Writer) {
-	fmt.Fprint(w, "HTTP/1.1 404 Not Found\r\n\r\n")
+func (resp *Response) String() string {
+	var (
+		respString string = fmt.Sprintf("HTTP/1.1 %v %v\r\n", resp.Status, statusText(resp.Status))
+		headers    []string
+	)
+
+	for k, v := range resp.Headers {
+		headers = append(headers, k+": "+v)
+	}
+
+	if len(headers) > 0 {
+		respString += strings.Join(headers, "\r\n")
+		respString += "\r\n"
+	}
+	respString += "\r\n"
+
+	if len(resp.Body) > 0 {
+		respString += resp.Body
+	}
+
+	return respString
+}
+
+func statusText(status int) string {
+	switch status {
+	case 200:
+		return "OK"
+	case 404:
+		return "Not Found"
+	}
+	return ""
+}
+
+func textResponse(defaultHeaders map[string]string, content string) string {
+	resp := NewResponse(200)
+
+	for k, v := range defaultHeaders {
+		resp.Headers[k] = v
+	}
+	resp.Headers["Content-Type"] = "text/plain"
+	resp.Headers["Content-Length"] = string(len(content))
+
+	resp.Body = content
+
+	return resp.String()
+}
+
+func fileResponse(defaultHeaders map[string]string, fileContent string) string {
+	resp := NewResponse(200)
+
+	for k, v := range defaultHeaders {
+		resp.Headers[k] = v
+	}
+	resp.Headers["Content-Type"] = "application/octet-stream"
+	resp.Headers["Content-Length"] = string(len(fileContent))
+
+	resp.Body = fileContent
+
+	return resp.String()
+}
+
+func notFound(defaultHeaders map[string]string, w io.Writer) {
+	resp := NewResponse(404)
+
+	for k, v := range defaultHeaders {
+		resp.Headers[k] = v
+	}
 }
